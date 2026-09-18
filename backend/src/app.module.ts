@@ -12,6 +12,10 @@ import {
   WaSesi,
   WaPesanLog,
   AntropometriPengukuran,
+  ArsipLokasi,
+  ArsipMap,
+  ArsipPinjam,
+  ArsipPinjamDetail,
 } from './entities';
 import { AuthModule } from './modules/auth/auth.module';
 import { LayananModule } from './modules/layanan/layanan.module';
@@ -20,6 +24,7 @@ import { AntropometriModule } from './modules/antropometri/antropometri.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { StubsModule } from './modules/stubs/stubs.module';
+import { ArsipModule } from './modules/arsip/arsip.module';
 
 @Module({
   imports: [
@@ -48,6 +53,10 @@ import { StubsModule } from './modules/stubs/stubs.module';
           WaSesi,
           WaPesanLog,
           AntropometriPengukuran,
+          ArsipLokasi,
+          ArsipMap,
+          ArsipPinjam,
+          ArsipPinjamDetail,
         ],
         synchronize: false, // Schema is managed via explicit SQL DDL
         logging: false,
@@ -60,6 +69,7 @@ import { StubsModule } from './modules/stubs/stubs.module';
     DashboardModule,
     WhatsAppModule,
     StubsModule,
+    ArsipModule,
   ],
 })
 export class AppModule {}

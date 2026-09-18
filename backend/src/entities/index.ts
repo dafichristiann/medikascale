@@ -8,3 +8,7 @@ export * from './antrian-log.entity';
 export * from './wa-sesi.entity';
 export * from './wa-pesan-log.entity';
 export * from './antropometri-pengukuran.entity';
+export * from './arsip-lokasi.entity';
+export * from './arsip-map.entity';
+export * from './arsip-pinjam.entity';
+export * from './arsip-pinjam-detail.entity';
