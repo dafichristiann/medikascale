@@ -1,137 +1,68 @@
-# MedikaScale Frontend Dashboard
+# MedikaScale — Frontend
 
-React + TypeScript frontend untuk sistem manajemen klinik anak dengan modul Antrian, Antropometri, dan role-based views.
+React + TypeScript + Vite + Tailwind CSS. Dibangun untuk berjalan mandiri dengan **data mock**
+lebih dulu, lalu tinggal disambungkan ke backend NestJS begitu API-nya siap.
 
-## Setup
+## Menjalankan
 
 ```bash
-cd frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-Server akan berjalan di `http://localhost:5173`
+Buka `http://localhost:5173`. Login dengan salah satu akun demo (ditampilkan juga di halaman login):
 
-## Environment Variables
+| Username  | Password | Role            |
+|-----------|----------|-----------------|
+| dokter    | demo123  | Dokter          |
+| perawat   | demo123  | Perawat         |
+| apoteker  | demo123  | Apoteker        |
+| lab       | demo123  | Lab & Radiologi |
 
-Copy `.env.example` ke `.env` dan sesuaikan:
-
-```
-VITE_API_URL=http://localhost:3000/api
-VITE_SOCKET_URL=http://localhost:3000
-```
-
-## Struktur Project
+## Struktur folder
 
 ```
 src/
-├── components/        # Reusable components
-│   ├── layout/       # Header, Sidebar, MainLayout
-│   ├── antrian/      # Queue management components
-│   ├── antropometri/ # Measurement & charts
-│   ├── dashboard/    # Role-based dashboards
-│   └── common/       # Shared UI components
-├── pages/            # Page components
-├── services/         # API & WebSocket services
-├── store/            # Zustand state management
-├── hooks/            # Custom React hooks
-├── types/            # TypeScript type definitions
-└── utils/            # Helper utilities & export functions
+  api/          fungsi pemanggil backend NestJS (jatuh ke mock kalau VITE_USE_MOCK=true)
+  components/   komponen UI reusable (Sidebar, Topbar, StatCard, Chip, navConfig)
+  context/      AuthContext — state login & pengecekan permission RBAC
+  data/         data mock (akun demo, antrian, arsip, resep, dst)
+  layouts/      AppLayout — shell sidebar + topbar
+  pages/        satu file per halaman/modul
+  routes/       ProtectedRoute — guard berbasis login & permission
+  types/        tipe TypeScript mengikuti skema database yang sudah disepakati
 ```
 
-## Features
+## Menyambungkan ke backend NestJS
 
-### Authentication
-- Login dengan username/password
-- JWT token management + auto-refresh
-- Permission-based route protection
+1. Set `VITE_USE_MOCK=false` di `.env`.
+2. Set `VITE_API_BASE_URL` ke alamat backend, misalnya `http://localhost:3000/api`.
+3. Pastikan backend punya endpoint dengan kontrak yang sama seperti yang sudah
+   ditulis di komentar tiap file `src/api/*.ts` — semuanya sudah didokumentasikan
+   method, path, request, dan response yang diharapkan.
+4. Response `POST /auth/login` **wajib** menyertakan `user.permissions` berupa
+   array kode permission (hasil JOIN `role_permissions` + `permissions`), bukan
+   cuma nama role — ini yang dipakai `AuthContext.hasPermission()` dan sidebar
+   (`src/components/navConfig.ts`) untuk menentukan menu & tombol apa yang tampil.
 
-### Antrian (Queue Management)
-- Real-time antrian list dengan WebSocket
-- Status updates (putih → hijau → kuning → merah)
-- Prioritas marking (Dokter only)
-- Filter by poli, layanan, status
+## RBAC di sisi frontend
 
-### Antropometri (Measurements)
-- Input form dengan validasi (tinggi, berat, lingkar kepala)
-- WHO growth charts (Line charts via Recharts)
-- Riwayat pengukuran per pasien
-- Laporan bulanan dengan export CSV/PDF
+Sidebar dan tombol aksi (Prioritaskan, Ubah status, dst) **tidak** dicek berdasarkan
+nama role, tapi berdasarkan `hasPermission('kode.permission')` dari `AuthContext`.
+Ini sengaja meniru rancangan RBAC yang bisa diatur admin di backend — begitu admin
+mengubah permission suatu role lewat panel admin, frontend otomatis ikut berubah
+tanpa perlu deploy ulang, selama backend mengirim daftar permission yang benar
+saat login.
 
-### Dashboard
-- **Dokter**: Total antrian, pasien prioritas, rata-rata waktu tunggu
-- **Perawat**: Antrian hari ini, quick input antropometri, pending measurements
+**Catatan penting:** guard di frontend (`ProtectedRoute`, kondisi `hasPermission`)
+hanya untuk pengalaman pengguna (menyembunyikan menu yang tidak relevan). Backend
+NestJS **wajib** melakukan pengecekan permission yang sama di setiap endpoint —
+jangan pernah mengandalkan frontend sebagai satu-satunya lapisan keamanan.
 
-### Real-time Updates
-- WebSocket integration via Socket.io
-- Auto-update antrian list saat ada perubahan status
-- Fallback polling setiap 5 detik jika WebSocket fail
+## Belum termasuk di tahap ini
 
-### Export & Print
-- Export laporan antropometri ke CSV
-- Generate PDF kartu grafik WHO
-- HTML2Canvas + jsPDF untuk rendering
-
-## Build & Production
-
-```bash
-npm run build  # Production build ke dist/
-npm run preview  # Preview production build
-```
-
-## API Contract
-
-Backend perlu menyediakan endpoints:
-
-```
-POST   /api/auth/login          → { token, user }
-POST   /api/auth/refresh        → { token }
-
-GET    /api/antrian?filters
-GET    /api/antrian/:id
-PUT    /api/antrian/:id/status
-GET    /api/antrian/log/:kunjungan_id
-
-POST   /api/antropometri
-GET    /api/antropometri/pasien/:pasien_id
-GET    /api/antropometri/report?filters
-
-GET    /api/pasien/:id
-GET    /api/kunjungan?filters
-
-WebSocket: /socket.io
-  - antrian:update
-  - antrian:new
-  - antrian:call
-```
-
-## Tech Stack
-
-- **React 18** + TypeScript
-- **Tailwind CSS** - styling
-- **React Router v6** - navigation
-- **Zustand** - state management
-- **Axios** - HTTP client
-- **Socket.io** - real-time WebSocket
-- **Recharts** - charting (WHO graphs)
-- **React Hook Form** + Zod - form validation
-- **jsPDF** + html2canvas - PDF export
-
-## Notes
-
-- Placeholder pages untuk Rekam Medis, Lab & Radiologi, Resep (integrasi Modul Orang B nanti)
-- WebSocket reconnection otomatis dengan exponential backoff
-- Form validation menggunakan Zod schema
-- Permission gates di component level & routes
-- WCAG 2.1 semantic HTML + keyboard navigation
-
-## Development
-
-```bash
-npm run dev      # Start dev server
-npm run build    # Build production
-npm run preview  # Preview production build
-npm run lint     # Run TypeScript check
-```
-
-Mobile responsive: Sidebar collapsible, Tailwind responsive classes.
+- Chatbot WhatsApp (perlu backend + provider WA, lihat prompt modul Orang A)
+- Perhitungan z-score WHO yang sesungguhnya (saat ini disimulasikan kasar di
+  `src/api/klinis.ts` — beri komentar `TODO` jelas di kode)
+- Panel Admin RBAC (Manajemen Role, Manajemen User, Matriks Hak Akses)

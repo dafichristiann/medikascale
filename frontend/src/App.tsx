@@ -1,93 +1,81 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from './store/authStore';
-import { ProtectedRoute } from './components/common/ProtectedRoute';
-import { LoginPage } from './pages/Login';
-import { DashboardPage } from './pages/DashboardPage';
-import { AntrianPage } from './pages/AntrianPage';
-import { AntropolopoPage } from './pages/AntropolopoPage';
-import { RekamMedisPage } from './pages/RekamMedisPage';
-import { LabRadiologiPage } from './pages/LabRadiologiPage';
-import { ResepPage } from './pages/ResepPage';
-import { MainLayout } from './components/layout/MainLayout';
+import { AuthProvider } from '@/context/AuthContext';
+import ProtectedRoute from '@/routes/ProtectedRoute';
+import AppLayout from '@/layouts/AppLayout';
 
-function App() {
-  const initialize = useAuthStore((state) => state.initialize);
+import Login from '@/pages/Login';
+import Dashboard from '@/pages/Dashboard';
+import Antrian from '@/pages/Antrian';
+import Arsip from '@/pages/Arsip';
+import Resep from '@/pages/Resep';
+import Antropometri from '@/pages/Antropometri';
+import Layanan from '@/pages/Layanan';
+import Lab from '@/pages/Lab';
+import Forbidden from '@/pages/Forbidden';
 
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/403" element={<Forbidden />} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/antrian"
+              element={
+                <ProtectedRoute requirePermission="antrian.view">
+                  <Antrian />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/arsip"
+              element={
+                <ProtectedRoute requirePermission="arsip.view">
+                  <Arsip />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/resep"
+              element={
+                <ProtectedRoute requireAnyPermission={['resep.kirim', 'resep.proses']}>
+                  <Resep />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/antropometri"
+              element={
+                <ProtectedRoute requirePermission="antropometri.input">
+                  <Antropometri />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lab"
+              element={
+                <ProtectedRoute requirePermission="lab.kelola">
+                  <Lab />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/layanan" element={<Layanan />} />
+          </Route>
 
-        <Route
-          path="/antrian"
-          element={
-            <ProtectedRoute requiredPermission="antrian.view">
-              <AntrianPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/antropometri"
-          element={
-            <ProtectedRoute requiredPermission="antropometri.view">
-              <AntropolopoPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/rekam-medis"
-          element={
-            <ProtectedRoute requiredPermission="rekam_medis.view">
-              <MainLayout>
-                <RekamMedisPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/lab-radiologi"
-          element={
-            <ProtectedRoute requiredPermission="lab.view">
-              <MainLayout>
-                <LabRadiologiPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/resep"
-          element={
-            <ProtectedRoute requiredPermission="resep.view">
-              <MainLayout>
-                <ResepPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-export default App;

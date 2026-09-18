@@ -1,23 +1,15 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: (id: string) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'vendor'
-            if (id.includes('zustand')) return 'state'
-            if (id.includes('recharts')) return 'charts'
-            if (id.includes('jspdf') || id.includes('html2canvas')) return 'ui'
-            return 'vendor'
-          }
-        },
-      },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
-    chunkSizeWarningLimit: 600,
   },
-})
+  server: {
+    port: 5173,
+  },
+});

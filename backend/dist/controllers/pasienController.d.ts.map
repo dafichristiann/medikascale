@@ -1,1 +1,0 @@
-{"version":3,"file":"pasienController.d.ts","sourceRoot":"","sources":["../../src/controllers/pasienController.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AACnC,OAAO,EAAE,WAAW,EAAE,MAAM,uBAAuB,CAAC;AAGpD,wBAAsB,eAAe,CAAC,GAAG,EAAE,WAAW,EAAE,GAAG,EAAE,QAAQ,2DAUpE;AAED,wBAAsB,oBAAoB,CAAC,GAAG,EAAE,WAAW,EAAE,GAAG,EAAE,QAAQ,iBAYzE"}

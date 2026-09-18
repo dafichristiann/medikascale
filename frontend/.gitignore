@@ -1,45 +1,7 @@
-# Dependencies
-node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Build outputs
-dist/
-build/
+node_modules
+dist
+.tsbuild-node
 *.tsbuildinfo
-
-# IDE & Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+.env
 .DS_Store
-.editorconfig
-
-# Logs
-logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Testing
-coverage/
-.nyc_output/
-
-# Temporary
-tmp/
-temp/
-*.tmp
-
-# OS
-Thumbs.db
-.DS_Store

@@ -1,58 +1,124 @@
-export interface User {
-  id: string;
+// Tipe-tipe ini dibuat mengikuti skema database yang sudah disepakati
+// (lihat dokumen "Skema Inti, RBAC & Alur Login/Routing"). Field & nama
+// sengaja disamakan persis dengan kolom di database supaya gampang
+// dipetakan saat backend NestJS sudah menyediakan endpoint aslinya.
+
+export type StatusAntrian = 'putih' | 'hijau' | 'kuning' | 'merah';
+
+export interface Role {
+  id: number;
+  kode: string; // dokter | perawat | apoteker | lab_radiologi | admin
+  nama_tampil: string;
+  is_system: boolean;
+}
+
+export interface Permission {
+  id: number;
+  kode: string; // contoh: 'antrian.view', 'antrian.prioritaskan'
+  modul: string;
+  deskripsi?: string;
+}
+
+export interface AuthenticatedUser {
+  id: number;
+  nama: string;
   username: string;
-  role_id: string;
-  permissions: string[];
+  role: Pick<Role, 'id' | 'kode' | 'nama_tampil'>;
+  permissions: string[]; // daftar permission.kode milik user (hasil join role_permissions)
 }
 
 export interface Pasien {
-  id: string;
+  id: number;
   no_rm: string;
   nama: string;
   tanggal_lahir: string;
-  no_telepon: string;
-  alamat: string;
+  jenis_kelamin: 'Laki-laki' | 'Perempuan';
+  nama_wali?: string;
+  golongan_darah?: string;
+  no_telepon?: string;
+  alamat?: string;
+}
+
+export interface Layanan {
+  id: number;
+  nama: string;
+  aktif: boolean;
 }
 
 export interface Kunjungan {
-  id: string;
-  pasien_id: string;
+  id: number;
+  no_kunjungan: string;
+  pasien: Pick<Pasien, 'id' | 'nama' | 'no_rm'>;
+  layanan: Pick<Layanan, 'id' | 'nama'>;
+  dpjp_user_id?: number;
+  perawat_user_id?: number;
+  tanggal: string;
+  poli?: string;
+  keluhan_utama?: string;
   no_antrian: string;
-  tanggal_kunjungan: string;
-  poli: string;
-  layanan: string;
-  status_antrian: 'putih' | 'hijau' | 'kuning' | 'merah';
+  status_antrian: StatusAntrian;
   prioritas: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export interface AntrianLog {
-  id: string;
-  kunjungan_id: string;
-  status_lama: string;
-  status_baru: string;
-  changed_by: string;
-  changed_at: string;
+export interface AntropometriPengukuran {
+  id?: number;
+  kunjungan_id: number;
+  pasien_id: number;
+  usia_bulan: number;
+  berat_badan_kg: number;
+  tinggi_badan_cm: number;
+  lingkar_kepala_cm?: number;
+  z_score_bb_u?: number;
+  z_score_tb_u?: number;
+  z_score_bb_tb?: number;
+  z_score_lk_u?: number;
+  interpretasi?: string;
+  created_at?: string;
 }
 
-export interface Antropometri {
-  id: string;
-  kunjungan_id: string;
-  tinggi: number;
-  berat: number;
-  lingkar_kepala?: number;
-  umur_bulan: number;
-  created_by_user_id: string;
-  created_at: string;
+export interface ResepItem {
+  nama_obat: string;
+  aturan_pakai: string;
+  jumlah: string;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
+export interface PesanResep {
+  id: number;
+  kunjungan_id: number;
+  dari_user: string;
+  ke_user: string;
+  isi_pesan: string;
+  resep_item?: ResepItem[];
+  status: 'terkirim' | 'disiapkan' | 'siap_diambil';
+  waktu: string;
 }
 
-export interface ApiError {
-  message: string;
-  code: string;
+export interface ArsipLokasi {
+  pasien_id: number;
+  no_rm: string;
+  nama_pasien: string;
+  lantai: string;
+  ruang: string;
+  rak: string;
+  baris: string;
+  kotak: string;
+  status: 'tersedia' | 'dipinjam' | 'dalam_pengiriman';
+}
+
+export interface ArsipTrackingStep {
+  label: string;
+  keterangan: string;
+  waktu?: string;
+  selesai: boolean;
+  aktif: boolean;
+}
+
+export interface PermintaanLab {
+  id: number;
+  pasien: Pick<Pasien, 'no_rm' | 'nama'>;
+  pemeriksaan: string;
+  diminta_oleh: string;
+  status: 'menunggu' | 'diproses' | 'hasil_siap';
 }
