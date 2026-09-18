@@ -1,0 +1,18 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Plus, Send, Trash2 } from 'lucide-react';
+import { workflowApi } from '@/api/workflows';
+import { Alert, Card, Field, inputClass, PageTitle } from './ClinicalUi';
+
+type Row = { nama_obat: string; dosis: string; jumlah: string; frekuensi: string; aturan_pakai: string; instruksi: string };
+const empty = (): Row => ({ nama_obat: '', dosis: '', jumlah: '', frekuensi: '', aturan_pakai: '', instruksi: '' });
+export default function ResepFormPage() {
+  const navigate = useNavigate(); const [kunjungan, setKunjungan] = useState('103'); const [rows, setRows] = useState<Row[]>([empty()]); const [notice, setNotice] = useState(''); const [saving, setSaving] = useState(false);
+  const update = (i: number, field: keyof Row, value: string) => setRows((prev) => prev.map((x, n) => n === i ? { ...x, [field]: value } : x));
+  async function submit(status: 'dibuat' | 'dikirim') { if (rows.some((x) => Object.values(x).some((v) => !v.trim()))) return setNotice('Lengkapi seluruh data obat sebelum menyimpan.'); setSaving(true); const pasien = kunjungan === '103' ? { nama: 'Bilqis Nur Aisyah', no_rm: 'RM-2024-018472' } : { nama: 'Ahmad Fauzi', no_rm: 'RM-2023-004120' }; const saved = await workflowApi.saveResep({ kunjungan_id: Number(kunjungan), pasien, dokter: 'dr. Angga, Sp.A', status, items: rows }); setSaving(false); navigate(`/resep/${saved.id}`); }
+  return <div><PageTitle title="Buat e-Resep" description="Pilih kunjungan pasien, lalu tambahkan obat dan aturan pakainya." action={<Link to="/resep" className="text-sm font-semibold text-teal">Lihat resep masuk</Link>} />
+    <Card className="p-4.5"><div className="grid sm:grid-cols-2 gap-4"><Field label="Kunjungan pasien"><select value={kunjungan} onChange={(e) => setKunjungan(e.target.value)} className={inputClass}><option value="103">ENC-2026-09-18-0003 · Bilqis Nur Aisyah</option><option value="101">ENC-2026-09-18-0001 · Ahmad Fauzi</option></select></Field><Field label="Dokter"><input readOnly value="dr. Angga, Sp.A" className={`${inputClass} bg-bg`} /></Field></div>
+      <div className="mt-6"><div className="flex justify-between items-center mb-2"><h3 className="font-bold text-sm">Item obat</h3><button onClick={() => setRows((x) => [...x, empty()])} className="text-teal text-xs font-semibold flex gap-1 items-center"><Plus size={15}/> Tambah obat</button></div>
+      {rows.map((row, i) => <div key={i} className="border border-border rounded-lg p-3 mb-3 relative"><button aria-label="Hapus obat" disabled={rows.length === 1} onClick={() => setRows((x) => x.filter((_, n) => n !== i))} className="absolute right-3 top-3 text-slate disabled:opacity-30"><Trash2 size={15}/></button><div className="grid md:grid-cols-3 gap-3 pr-7">{(Object.keys(row) as Array<keyof Row>).map((field) => <Field key={field} label={{ nama_obat: 'Nama obat', dosis: 'Dosis', jumlah: 'Jumlah', frekuensi: 'Frekuensi', aturan_pakai: 'Aturan pakai', instruksi: 'Instruksi' }[field]}><input value={row[field]} onChange={(e) => update(i, field, e.target.value)} className={inputClass} /></Field>)}</div></div>)}</div>
+      <div className="flex gap-2 mt-5"><button disabled={saving} onClick={() => submit('dibuat')} className="border border-border rounded-lg px-4 py-2 text-sm font-semibold">Simpan draft</button><button disabled={saving} onClick={() => submit('dikirim')} className="bg-teal text-white rounded-lg px-4 py-2 text-sm font-semibold flex gap-2 items-center"><Send size={15}/> {saving ? 'Menyimpan...' : 'Kirim ke apotek'}</button></div>{notice && <Alert>{notice}</Alert>}</Card></div>;
+}

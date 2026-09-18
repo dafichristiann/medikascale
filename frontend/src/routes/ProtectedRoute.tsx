@@ -13,7 +13,7 @@ export default function ProtectedRoute({ children, requirePermission, requireAny
   const { user, loading } = useAuth();
 
   if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/demo-role" replace />;
 
   if (requirePermission && !user.permissions.includes(requirePermission)) {
     return <Navigate to="/403" replace />;

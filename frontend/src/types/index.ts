@@ -104,7 +104,7 @@ export interface ArsipLokasi {
   rak: string;
   baris: string;
   kotak: string;
-  status: 'tersedia' | 'dipinjam' | 'dalam_pengiriman';
+  status: 'tersedia' | 'dipinjam' | 'dikembalikan' | 'dalam_pengiriman';
 }
 
 export interface ArsipTrackingStep {
@@ -206,3 +206,31 @@ export interface AdminUser {
 export interface AdminRole extends Role {
   permissions: Permission[];
 }
+export type StatusResepBaru = 'dibuat' | 'dikirim' | 'diproses' | 'siap' | 'selesai' | 'dibatalkan';
+export interface ResepLengkap {
+  id: number;
+  kunjungan_id: number;
+  pasien: Pick<Pasien, 'nama' | 'no_rm'>;
+  dokter: string;
+  dibuat_pada: string;
+  status: StatusResepBaru;
+  items: Array<ResepItem & { dosis: string; frekuensi: string; instruksi: string }>;
+}
+
+export type StatusPemeriksaan = 'diminta' | 'diproses' | 'hasil_siap' | 'direview' | 'dikembalikan';
+export interface Pemeriksaan {
+  id: number;
+  kunjungan_id: number;
+  pasien: Pick<Pasien, 'nama' | 'no_rm'>;
+  dokter: string;
+  jenis: 'Laboratorium' | 'Radiologi';
+  pemeriksaan: string;
+  catatan: string;
+  status: StatusPemeriksaan;
+  hasil?: { nilai: string; satuan: string; nilai_rujukan: string; interpretasi: string };
+}
+
+export interface LokasiArsip { id: number; lantai: string; ruang: string; rak: string; baris: string; map_count: number }
+export interface MapArsip extends ArsipLokasi { id: number; no_map: string; lokasi_id?: number }
+export interface ArsipPatientOption { id: number; nama: string; no_rm: string }
+export interface RiwayatArsip { id: number; map_id: number; no_rm: string; nama_pasien: string; tindakan: 'Dipinjam' | 'Dikembalikan'; keterangan: string; petugas: string; waktu: string }

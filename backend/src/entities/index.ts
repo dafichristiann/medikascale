@@ -14,3 +14,7 @@ export * from './pemeriksaan-penunjang.entity';
 export * from './arsip-dokumen.entity';
 export * from './arsip-tracking.entity';
 export * from './notifikasi.entity';
+export * from './arsip-lokasi.entity';
+export * from './arsip-map.entity';
+export * from './arsip-pinjam.entity';
+export * from './arsip-pinjam-detail.entity';

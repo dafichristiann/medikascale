@@ -18,6 +18,10 @@ import {
   ArsipDokumen,
   ArsipTracking,
   Notifikasi,
+  ArsipLokasi,
+  ArsipMap,
+  ArsipPinjam,
+  ArsipPinjamDetail,
 } from './entities';
 import { AuthModule } from './modules/auth/auth.module';
 import { LayananModule } from './modules/layanan/layanan.module';
@@ -29,6 +33,7 @@ import { StubsModule } from './modules/stubs/stubs.module';
 import { KlinisModule } from './modules/klinis/klinis.module';
 import { NotifikasiModule } from './modules/notifikasi/notifikasi.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ArsipModule } from './modules/arsip/arsip.module';
 
 @Module({
   imports: [
@@ -63,6 +68,10 @@ import { AdminModule } from './modules/admin/admin.module';
           ArsipDokumen,
           ArsipTracking,
           Notifikasi,
+          ArsipLokasi,
+          ArsipMap,
+          ArsipPinjam,
+          ArsipPinjamDetail,
         ],
         synchronize: false, // Schema is managed via explicit SQL DDL
         logging: false,
@@ -78,6 +87,7 @@ import { AdminModule } from './modules/admin/admin.module';
     KlinisModule,
     NotifikasiModule,
     AdminModule,
+    ArsipModule,
   ],
 })
 export class AppModule {}
