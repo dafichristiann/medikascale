@@ -1,0 +1,26 @@
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { AntropometriService } from './antropometri.service';
+import { CreateAntropometriDto } from './dto/create-antropometri.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+
+@ApiTags('antropometri')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@Controller('antropometri')
+export class AntropometriController {
+  constructor(private antropometriService: AntropometriService) {}
+
+  @Post()
+  @RequirePermissions('antropometri.input')
+  @ApiOperation({ summary: 'Simpan hasil pengukuran antropometri dan hitung z-score WHO' })
+  async create(
+    @Body() dto: CreateAntropometriDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.antropometriService.create(dto, user?.id);
+  }
+}
