@@ -26,16 +26,16 @@ import WhoGrowthChart from '@/components/WhoGrowthChart';
 export default function Antropometri() {
   const [searchParams] = useSearchParams();
   const [kunjunganList, setKunjunganList] = useState<Kunjungan[]>([]);
-  const [selectedKunjunganId, setSelectedKunjunganId] = useState<number>(103);
+  const [selectedKunjunganId, setSelectedKunjunganId] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Form Inputs
-  const [usiaBulan, setUsiaBulan] = useState(18);
-  const [bb, setBb] = useState('10.2');
-  const [tb, setTb] = useState('79.5');
-  const [lk, setLk] = useState('45.8');
+  const [usiaBulan, setUsiaBulan] = useState(12);
+  const [bb, setBb] = useState('');
+  const [tb, setTb] = useState('');
+  const [lk, setLk] = useState('');
   const [manualGender, setManualGender] = useState<'Laki-laki' | 'Perempuan' | null>(null);
 
   // Status & Feedback
@@ -53,7 +53,8 @@ export default function Antropometri() {
         if (paramId) {
           const matched = items.find((k) => k.id === parseInt(paramId, 10));
           if (matched) setSelectedKunjunganId(matched.id);
-        } else if (items.length > 0 && !items.find((k) => k.id === selectedKunjunganId)) {
+          else if (items.length > 0) setSelectedKunjunganId(items[0].id);
+        } else if (items.length > 0) {
           setSelectedKunjunganId(items[0].id);
         }
       })
@@ -73,19 +74,7 @@ export default function Antropometri() {
 
   const selectedKunjungan =
     kunjunganList.find((k) => k.id === selectedKunjunganId) ||
-    ({
-      id: 103,
-      no_antrian: 'A03',
-      pasien: {
-        id: 3,
-        nama: 'Bilqis Nur Aisyah',
-        no_rm: 'RM-2024-018472',
-        jenis_kelamin: 'Perempuan',
-        tanggal_lahir: '2023-03-15',
-      },
-      layanan: { id: 1, nama: 'Poli Anak & Tumbuh Kembang' },
-      status_antrian: 'putih',
-    } as unknown as Kunjungan);
+    (kunjunganList.length > 0 ? kunjunganList[0] : null);
 
   // Resolve gender
   const currentGender: 'Laki-laki' | 'Perempuan' =
@@ -244,20 +233,26 @@ export default function Antropometri() {
           <div>
             <div className="text-[11px] font-semibold text-slate uppercase tracking-wider">Pasien Aktif:</div>
             <div className="flex items-center gap-2 font-bold text-sm text-ink">
-              <span className="font-mono bg-navy-deep text-white px-1.5 py-0.2 rounded text-xs">
-                {selectedKunjungan.no_antrian}
-              </span>
-              <span>{selectedKunjungan.pasien?.nama}</span>
-              <span className="font-mono text-slate text-xs font-normal">
-                ({selectedKunjungan.pasien?.no_rm})
-              </span>
-              <span
-                className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full ${
-                  currentGender === 'Laki-laki' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'
-                }`}
-              >
-                {currentGender}
-              </span>
+              {selectedKunjungan ? (
+                <>
+                  <span className="font-mono bg-navy-deep text-white px-1.5 py-0.2 rounded text-xs">
+                    {selectedKunjungan.no_antrian}
+                  </span>
+                  <span>{selectedKunjungan.pasien?.nama}</span>
+                  <span className="font-mono text-slate text-xs font-normal">
+                    ({selectedKunjungan.pasien?.no_rm})
+                  </span>
+                  <span
+                    className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full ${
+                      currentGender === 'Laki-laki' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'
+                    }`}
+                  >
+                    {currentGender}
+                  </span>
+                </>
+              ) : (
+                <span className="text-xs text-slate italic font-normal">Belum ada pasien yang dipilih dari antrian hari ini</span>
+              )}
             </div>
           </div>
         </div>

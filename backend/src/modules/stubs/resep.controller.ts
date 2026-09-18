@@ -50,10 +50,12 @@ export class ResepStubController {
       const kid = parseInt(kunjunganId, 10);
       return this.resepRepository.find({
         where: { kunjungan_id: kid },
+        relations: { kunjungan: { pasien: true, layanan: true } },
         order: { waktu: 'ASC' },
       });
     }
     return this.resepRepository.find({
+      relations: { kunjungan: { pasien: true, layanan: true } },
       order: { waktu: 'DESC' },
       take: 50,
     });
@@ -145,14 +147,15 @@ export class ResepStubController {
       const kunjungan = await this.kunjunganRepository.findOne({
         where: { id: item.kunjungan_id },
       });
-      if (kunjungan && kunjungan.status_antrian === 'merah') {
+      if (kunjungan && kunjungan.status_antrian !== 'selesai') {
+        const dariStatus = kunjungan.status_antrian;
         kunjungan.status_antrian = 'selesai';
         kunjungan.updated_at = new Date();
         await this.kunjunganRepository.save(kunjungan);
 
         const log = this.antrianLogRepository.create({
           kunjungan_id: kunjungan.id,
-          status_dari: 'merah',
+          status_dari: dariStatus,
           status_ke: 'selesai',
           diubah_oleh_user_id: user?.id ?? null,
           waktu: new Date(),
