@@ -48,4 +48,4 @@ export function urutkanAntrian(items: Kunjungan[]): Kunjungan[] {
   });
 }
 
-export const URUTAN_STATUS: StatusAntrian[] = ['putih', 'hijau', 'kuning', 'merah'];
+export const URUTAN_STATUS: StatusAntrian[] = ['putih', 'hijau', 'kuning', 'merah', 'selesai'];

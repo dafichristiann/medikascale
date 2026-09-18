@@ -1,4 +1,4 @@
-type ChipTone = 'green' | 'amber' | 'red' | 'grey' | 'white';
+type ChipTone = 'green' | 'amber' | 'red' | 'grey' | 'white' | 'blue';
 
 const toneClass: Record<ChipTone, string> = {
   green: 'bg-status-greenTint text-status-green',
@@ -6,6 +6,7 @@ const toneClass: Record<ChipTone, string> = {
   red: 'bg-status-redTint text-status-red',
   grey: 'bg-status-greyTint text-status-grey',
   white: 'bg-white text-slate border border-border',
+  blue: 'bg-blue-50 text-blue-700 border border-blue-200',
 };
 
 export default function Chip({ tone, children }: { tone: ChipTone; children: React.ReactNode }) {

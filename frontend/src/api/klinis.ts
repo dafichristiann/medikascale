@@ -37,6 +37,29 @@ export async function simpanAntropometri(
   return data;
 }
 
+/** GET /antropometri/kunjungan/:kunjunganId — riwayat pengukuran antropometri pasien. */
+export async function fetchAntropometriByKunjungan(kunjunganId: number): Promise<AntropometriPengukuran[]> {
+  if (USE_MOCK) {
+    return [
+      {
+        kunjungan_id: kunjunganId,
+        pasien_id: 3,
+        usia_bulan: 18,
+        berat_badan_kg: 10.2,
+        tinggi_badan_cm: 79.5,
+        lingkar_kepala_cm: 45.8,
+        z_score_bb_u: 0,
+        z_score_tb_u: -0.44,
+        z_score_bb_tb: 0.22,
+        z_score_lk_u: -0.3,
+        interpretasi: 'Gizi baik, perawakan normal, normosefali',
+      },
+    ];
+  }
+  const { data } = await apiClient.get<AntropometriPengukuran[]>(`/antropometri/kunjungan/${kunjunganId}`);
+  return data;
+}
+
 /** GET /lab — daftar permintaan pemeriksaan lab & radiologi. */
 export async function fetchPermintaanLab(): Promise<PermintaanLab[]> {
   if (USE_MOCK) return MOCK_LAB;
@@ -48,5 +71,49 @@ export async function fetchPermintaanLab(): Promise<PermintaanLab[]> {
 export async function ubahStatusLab(id: number, status: PermintaanLab['status']): Promise<PermintaanLab> {
   if (USE_MOCK) return { id, status } as PermintaanLab;
   const { data } = await apiClient.patch<PermintaanLab>(`/lab/${id}/status`, { status });
+  return data;
+}
+
+/** PATCH /lab/:id/hasil — analis menginputkan hasil dan nilai rujukan lab/radiologi */
+export async function inputHasilLab(
+  id: number,
+  payload: { hasil_pemeriksaan: string; nilai_rujukan?: string },
+): Promise<any> {
+  if (USE_MOCK) return { id, status: 'selesai', ...payload };
+  const { data } = await apiClient.patch(`/lab/${id}/hasil`, payload);
+  return data;
+}
+
+/** POST /klinis/pemeriksaan — simpan pemeriksaan dokter 360, e-resep, dan permintaan lab */
+export async function simpanPemeriksaanDokter(payload: import('@/types').SimpanPemeriksaanPayload): Promise<any> {
+  if (USE_MOCK) {
+    return {
+      success: true,
+      pemeriksaan: { id: Date.now(), ...payload },
+      resep: payload.resep_items && payload.resep_items.length > 0 ? { id: Date.now(), status: 'menunggu' } : null,
+      status_antrian: payload.resep_items && payload.resep_items.length > 0 ? 'merah' : 'kuning',
+    };
+  }
+  const { data } = await apiClient.post('/klinis/pemeriksaan', payload);
+  return data;
+}
+
+/** GET /klinis/kunjungan/:id/detail — ambil data 360 rekam medis kunjungan pasien */
+export async function fetchDetailKunjungan(kunjunganId: number): Promise<import('@/types').DetailKunjungan360> {
+  if (USE_MOCK) {
+    return {
+      kunjungan: {} as any,
+      pasien: {} as any,
+      antropometri: null,
+      riwayat_antropometri: [],
+      pemeriksaan: null,
+      riwayat_pemeriksaan: [],
+      resep: [],
+      penunjang: [],
+      arsip: null,
+      riwayat_kunjungan: [],
+    };
+  }
+  const { data } = await apiClient.get<import('@/types').DetailKunjungan360>(`/klinis/kunjungan/${kunjunganId}/detail`);
   return data;
 }

@@ -69,18 +69,30 @@ export default function Login() {
           </button>
         </form>
 
-        {USE_MOCK && (
-          <div className="mt-6 text-[11.5px] text-slate bg-teal-tint rounded-lg p-3 leading-relaxed">
-            <b>Mode demo (backend belum tersambung).</b> Password semua akun: <code>demo123</code>
-            <ul className="mt-1.5 list-disc list-inside">
-              {MOCK_USERS.map((u) => (
-                <li key={u.id}>
-                  <code>{u.username}</code> — {u.role.nama_tampil}
-                </li>
-              ))}
-            </ul>
+        <div className="mt-6 pt-5 border-t border-border">
+          <p className="text-[12px] font-semibold text-slate mb-2.5">Pilih Cepat Akun Demo (Password: demo123):</p>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: 'Dokter', u: 'dokter' },
+              { label: 'Perawat', u: 'perawat' },
+              { label: 'Apoteker', u: 'apoteker' },
+              { label: 'Lab', u: 'lab' },
+              { label: 'Admin', u: 'admin' },
+            ].map((acc) => (
+              <button
+                key={acc.u}
+                type="button"
+                onClick={() => {
+                  setUsername(acc.u);
+                  setPassword('demo123');
+                }}
+                className="text-[11.5px] font-semibold border border-border rounded-lg py-1.5 px-2 hover:border-teal hover:bg-teal-tint transition text-center"
+              >
+                {acc.label}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
