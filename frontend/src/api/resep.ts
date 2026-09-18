@@ -11,6 +11,13 @@ export async function fetchThreadResep(kunjunganId: number): Promise<PesanResep[
   return data;
 }
 
+/** GET /resep — seluruh resep farmasi untuk semua pasien */
+export async function fetchAllResep(): Promise<PesanResep[]> {
+  if (USE_MOCK) return cache;
+  const { data } = await apiClient.get<PesanResep[]>('/resep');
+  return data;
+}
+
 /** POST /resep — dokter mengirim pesan/resep baru ke apoteker. */
 export async function kirimPesanResep(payload: Omit<PesanResep, 'id' | 'waktu'>): Promise<PesanResep> {
   if (USE_MOCK) {

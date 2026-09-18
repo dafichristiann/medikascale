@@ -87,11 +87,14 @@ export interface ResepItem {
 export interface PesanResep {
   id: number;
   kunjungan_id: number;
+  kunjungan?: Kunjungan;
+  dokter_user_id?: number;
+  apoteker_user_id?: number;
   dari_user: string;
   ke_user: string;
   isi_pesan: string;
   resep_item?: ResepItem[];
-  status: 'terkirim' | 'disiapkan' | 'siap_diambil';
+  status: 'terkirim' | 'menunggu' | 'disiapkan' | 'siap_diambil' | 'diserahkan' | 'selesai';
   waktu: string;
 }
 
