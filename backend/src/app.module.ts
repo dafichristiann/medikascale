@@ -12,6 +12,10 @@ import {
   WaSesi,
   WaPesanLog,
   AntropometriPengukuran,
+  ArsipLokasi,
+  ArsipMap,
+  ArsipPinjam,
+  ArsipPinjamDetail,
   PemeriksaanDokter,
   ResepObat,
   PemeriksaanPenunjang,
@@ -26,6 +30,7 @@ import { AntropometriModule } from './modules/antropometri/antropometri.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { StubsModule } from './modules/stubs/stubs.module';
+import { ArsipModule } from './modules/arsip/arsip.module';
 import { KlinisModule } from './modules/klinis/klinis.module';
 import { NotifikasiModule } from './modules/notifikasi/notifikasi.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -57,6 +62,10 @@ import { AdminModule } from './modules/admin/admin.module';
           WaSesi,
           WaPesanLog,
           AntropometriPengukuran,
+          ArsipLokasi,
+          ArsipMap,
+          ArsipPinjam,
+          ArsipPinjamDetail,
           PemeriksaanDokter,
           ResepObat,
           PemeriksaanPenunjang,
@@ -75,6 +84,7 @@ import { AdminModule } from './modules/admin/admin.module';
     DashboardModule,
     WhatsAppModule,
     StubsModule,
+    ArsipModule,
     KlinisModule,
     NotifikasiModule,
     AdminModule,

@@ -3,13 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   ResepObat,
   PemeriksaanPenunjang,
-  ArsipDokumen,
-  ArsipTracking,
   Notifikasi,
   Kunjungan,
   AntrianLog,
 } from '../../entities';
-import { ArsipStubController } from './arsip.controller';
 import { ResepStubController } from './resep.controller';
 import { LabStubController } from './lab.controller';
 
@@ -18,14 +15,12 @@ import { LabStubController } from './lab.controller';
     TypeOrmModule.forFeature([
       ResepObat,
       PemeriksaanPenunjang,
-      ArsipDokumen,
-      ArsipTracking,
       Notifikasi,
       Kunjungan,
       AntrianLog,
     ]),
   ],
-  controllers: [ArsipStubController, ResepStubController, LabStubController],
+  controllers: [ResepStubController, LabStubController],
   exports: [TypeOrmModule],
 })
 export class StubsModule {}

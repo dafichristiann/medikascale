@@ -38,6 +38,7 @@ export default function Resep() {
   const [submitting, setSubmitting] = useState(false);
   const [notif, setNotif] = useState<string | null>(null);
 
+
   // Tab mode jika user memiliki kedua akses (misal Admin)
   const isApotekerOnly = hasPermission('resep.proses') && !hasPermission('resep.kirim');
   const isDokterOnly = hasPermission('resep.kirim') && !hasPermission('resep.proses');

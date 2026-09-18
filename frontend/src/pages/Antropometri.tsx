@@ -53,8 +53,7 @@ export default function Antropometri() {
         if (paramId) {
           const matched = items.find((k) => k.id === parseInt(paramId, 10));
           if (matched) setSelectedKunjunganId(matched.id);
-          else if (items.length > 0) setSelectedKunjunganId(items[0].id);
-        } else if (items.length > 0) {
+        } else if (items.length > 0 && !items.find((k) => k.id === selectedKunjunganId)) {
           setSelectedKunjunganId(items[0].id);
         }
       })
