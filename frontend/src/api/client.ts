@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+// Mock hanya boleh aktif jika diminta secara eksplisit. Ini mencegah build
+// production diam-diam memakai akun/data lokal ketika env belum tersedia.
+export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',

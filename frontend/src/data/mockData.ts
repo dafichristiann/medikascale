@@ -54,6 +54,25 @@ export const MOCK_USERS: Array<AuthenticatedUser & { username: string; password:
     role: { id: 4, kode: 'lab_radiologi', nama_tampil: 'Lab & Radiologi' },
     permissions: ['lab.kelola', 'arsip.view'],
   },
+  {
+    id: 5,
+    nama: 'Administrator MedikaScale',
+    username: 'admin',
+    password: 'demo123',
+    role: { id: 5, kode: 'admin', nama_tampil: 'Admin' },
+    permissions: [
+      'antrian.view',
+      'antrian.prioritaskan',
+      'antrian.ubah_status',
+      'antropometri.input',
+      'arsip.view',
+      'arsip.minta_pengiriman',
+      'resep.kirim',
+      'resep.proses',
+      'lab.kelola',
+      'admin.kelola',
+    ],
+  },
 ];
 
 export const MOCK_LAYANAN: Layanan[] = [
