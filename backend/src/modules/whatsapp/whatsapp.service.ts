@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { WaSesi } from '../../entities/wa-sesi.entity';
 import { WaPesanLog } from '../../entities/wa-pesan-log.entity';
 import { Pasien } from '../../entities/pasien.entity';
@@ -30,9 +31,11 @@ export class WhatsAppService {
     private antrianLogRepository: Repository<AntrianLog>,
     private genericAdapter: GenericWhatsAppAdapter,
     private fonnteAdapter: FonnteWhatsAppAdapter,
+    private configService: ConfigService,
   ) {
-    // Default provider is generic (adapter-agnostic)
-    this.adapter = this.genericAdapter;
+    const fonnteToken = this.configService.get<string>('FONNTE_TOKEN');
+    const provider = this.configService.get<string>('WA_PROVIDER');
+    this.adapter = (provider === 'fonnte' || Boolean(fonnteToken)) ? this.fonnteAdapter : this.genericAdapter;
   }
 
   setAdapter(provider: 'generic' | 'fonnte') {
@@ -169,10 +172,31 @@ export class WhatsAppService {
         }
 
         // Generate nomor antrian harian A01..A99
-        const countHariIni = await this.kunjunganRepository.count({
+        const allHariIni = await this.kunjunganRepository.find({
           where: { tanggal: todayStr },
+          select: { id: true, no_antrian: true },
         });
-        const seqNum = countHariIni + 1;
+
+        let maxSeq = 0;
+        for (const item of allHariIni) {
+          const match = item.no_antrian?.match(/^A(\d+)$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxSeq) maxSeq = num;
+          }
+        }
+        const seqNum = maxSeq + 1;
+
+        if (seqNum > 99) {
+          reply =
+            `⚠️ Mohon maaf, kuota nomor antrian Poliklinik Anak hari ini (${todayStr}) telah penuh (maksimal A99).\n\n` +
+            `Silakan mendaftar untuk jadwal hari kerja berikutnya atau hubungi loket pendaftaran fisik klinik.`;
+          sesi.state = 'AWAL';
+          sesi.konteks = {};
+          await this.waSesiRepository.save(sesi);
+          break;
+        }
+
         const noAntrian = `A${String(seqNum).padStart(2, '0')}`;
         const noKunjungan = `ENC-${todayStr}-${String(seqNum).padStart(4, '0')}`;
 

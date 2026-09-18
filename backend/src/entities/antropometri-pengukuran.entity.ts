@@ -60,7 +60,7 @@ export class AntropometriPengukuran {
   @Column({ type: 'numeric', precision: 4, scale: 2, nullable: true })
   z_score_lk_u?: number;
 
-  @Column({ length: 60, nullable: true })
+  @Column({ length: 255, nullable: true })
   interpretasi?: string;
 
   @CreateDateColumn({ type: 'timestamp' })

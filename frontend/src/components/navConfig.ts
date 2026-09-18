@@ -6,6 +6,7 @@ import {
   Ruler,
   ListChecks,
   FlaskConical,
+  Shield,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -29,4 +30,5 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/resep', label: 'Resep masuk', icon: MessagesSquare, permission: 'resep.proses' },
   { path: '/lab', label: 'Lab & Radiologi', icon: FlaskConical, permission: 'lab.kelola' },
   { path: '/layanan', label: 'Layanan', icon: ListChecks },
+  { path: '/admin', label: 'Kelola Admin', icon: Shield, permission: 'admin.kelola' },
 ];

@@ -11,99 +11,156 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
-import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
+import {
+  RequirePermissions,
+  RequireAnyPermissions,
+} from '../../common/decorators/require-permissions.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ResepObat } from '../../entities/resep-obat.entity';
+import { Notifikasi } from '../../entities/notifikasi.entity';
+import { Kunjungan } from '../../entities/kunjungan.entity';
+import { AntrianLog } from '../../entities/antrian-log.entity';
 
-// In-memory stub cache for Orang B (Resep)
-const MOCK_RESEP_THREAD = [
-  {
-    id: 1,
-    kunjungan_id: 103,
-    dari_user: 'dr. Angga, Sp.A',
-    ke_user: 'Apt. Ratna Wijaya',
-    isi_pesan: 'Tolong siapkan resep untuk An. Bilqis ya.',
-    resep_item: [
-      {
-        nama_obat: 'Parasetamol drops 100mg/mL',
-        aturan_pakai: 'Tiap 6 jam bila demam',
-        jumlah: '1 botol',
-      },
-      {
-        nama_obat: 'NaCl 0,9% nasal drops',
-        aturan_pakai: '2 tetes/lubang hidung',
-        jumlah: '1 botol',
-      },
-      {
-        nama_obat: 'Zinc sirup 20mg/5mL',
-        aturan_pakai: '1x sehari, 10 hari',
-        jumlah: '1 botol',
-      },
-    ],
-    status: 'terkirim',
-    waktu: '2026-09-18T09:35:00Z',
-  },
-  {
-    id: 2,
-    kunjungan_id: 103,
-    dari_user: 'Apt. Ratna Wijaya',
-    ke_user: 'dr. Angga, Sp.A',
-    isi_pesan: 'Diterima, sedang disiapkan di racikan 2. Estimasi 10 menit.',
-    status: 'disiapkan',
-    waktu: '2026-09-18T09:37:00Z',
-  },
-  {
-    id: 3,
-    kunjungan_id: 103,
-    dari_user: 'Apt. Ratna Wijaya',
-    ke_user: 'dr. Angga, Sp.A',
-    isi_pesan: 'Resep sudah siap diambil di loket apotek.',
-    status: 'siap_diambil',
-    waktu: '2026-09-18T09:47:00Z',
-  },
-];
-
-let resepCache = [...MOCK_RESEP_THREAD];
-
-@ApiTags('resep (stub)')
+@ApiTags('resep')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('resep')
 export class ResepStubController {
+  constructor(
+    @InjectRepository(ResepObat)
+    private resepRepository: Repository<ResepObat>,
+    @InjectRepository(Notifikasi)
+    private notifikasiRepository: Repository<Notifikasi>,
+    @InjectRepository(Kunjungan)
+    private kunjunganRepository: Repository<Kunjungan>,
+    @InjectRepository(AntrianLog)
+    private antrianLogRepository: Repository<AntrianLog>,
+  ) {}
+
   @Get()
-  @RequirePermissions('resep.kirim')
-  @ApiOperation({ summary: 'Stub: Riwayat pesan resep untuk kunjungan tertentu' })
-  @ApiQuery({ name: 'kunjungan_id', example: 103 })
-  async getResep(@Query('kunjungan_id', ParseIntPipe) kunjunganId: number) {
-    return resepCache.filter((r) => r.kunjungan_id === kunjunganId);
+  @RequireAnyPermissions('resep.kirim', 'resep.proses')
+  @ApiOperation({ summary: 'Riwayat pesan resep untuk kunjungan tertentu atau seluruhnya' })
+  @ApiQuery({ name: 'kunjungan_id', required: false, example: 103 })
+  async getResep(@Query('kunjungan_id') kunjunganId?: string) {
+    if (kunjunganId) {
+      const kid = parseInt(kunjunganId, 10);
+      return this.resepRepository.find({
+        where: { kunjungan_id: kid },
+        order: { waktu: 'ASC' },
+      });
+    }
+    return this.resepRepository.find({
+      order: { waktu: 'DESC' },
+      take: 50,
+    });
   }
 
   @Post()
   @RequirePermissions('resep.kirim')
-  @ApiOperation({ summary: 'Stub: Dokter mengirim resep baru ke apoteker' })
-  async kirimResep(@Body() payload: any) {
-    const item = {
-      ...payload,
-      id: resepCache.length + 1,
-      waktu: new Date().toISOString(),
-      status: payload.status || 'terkirim',
-    };
-    resepCache.push(item);
-    return item;
+  @ApiOperation({ summary: 'Dokter mengirim resep baru ke apoteker' })
+  async kirimResep(@Body() payload: any, @CurrentUser() user: any) {
+    const item = this.resepRepository.create({
+      kunjungan_id: payload.kunjungan_id,
+      dokter_user_id: user?.id,
+      dari_user: user?.nama || payload.dari_user || 'Dokter',
+      ke_user: payload.ke_user || 'Apoteker',
+      isi_pesan: payload.isi_pesan || 'Resep baru dari dokter',
+      resep_item: payload.resep_item || [],
+      status: payload.status || 'menunggu',
+      waktu: new Date(),
+    });
+
+    const saved = await this.resepRepository.save(item);
+
+    // Otomatis buat notifikasi untuk Apoteker
+    const notif = this.notifikasiRepository.create({
+      role_kode: 'apoteker',
+      judul: 'Resep Masuk Baru',
+      pesan: `${item.dari_user} mengirim e-resep untuk kunjungan #${item.kunjungan_id}`,
+      tipe: 'resep',
+      tautan: `/resep?kunjungan_id=${item.kunjungan_id}`,
+      dibaca: false,
+    });
+    await this.notifikasiRepository.save(notif);
+
+    // Jika antrian pasien masih 'kuning', otomatis ubah ke 'merah' (dapat resep)
+    const kunjungan = await this.kunjunganRepository.findOne({
+      where: { id: payload.kunjungan_id },
+    });
+    if (kunjungan && kunjungan.status_antrian === 'kuning') {
+      kunjungan.status_antrian = 'merah';
+      kunjungan.updated_at = new Date();
+      await this.kunjunganRepository.save(kunjungan);
+
+      const log = this.antrianLogRepository.create({
+        kunjungan_id: kunjungan.id,
+        status_dari: 'kuning',
+        status_ke: 'merah',
+        diubah_oleh_user_id: user?.id ?? null,
+        waktu: new Date(),
+      });
+      await this.antrianLogRepository.save(log);
+    }
+
+    return saved;
   }
 
   @Patch(':id/status')
   @RequirePermissions('resep.proses')
-  @ApiOperation({ summary: 'Stub: Apoteker memperbarui status penyiapan resep' })
+  @ApiOperation({ summary: 'Apoteker memperbarui status penyiapan resep (menunggu -> diproses -> siap_diambil -> diserahkan -> selesai)' })
   async updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { status: string },
+    @CurrentUser() user: any,
   ) {
-    const item = resepCache.find((r) => r.id === id);
+    const item = await this.resepRepository.findOne({ where: { id } });
     if (!item) {
       throw new NotFoundException('Pesan resep tidak ditemukan');
     }
+
     item.status = body.status;
-    return item;
+    if (user?.id) item.apoteker_user_id = user.id;
+    item.updated_at = new Date();
+    const saved = await this.resepRepository.save(item);
+
+    // Kirim notifikasi jika obat siap diambil atau diserahkan
+    if (body.status === 'siap_diambil' || body.status === 'diserahkan') {
+      const notif = this.notifikasiRepository.create({
+        role_kode: 'dokter',
+        judul: `Obat Siap Diambil (Kunjungan #${item.kunjungan_id})`,
+        pesan: `Resep obat telah selesai disiapkan oleh farmasi dan ${body.status === 'siap_diambil' ? 'siap diambil di loket apotek' : 'telah diserahkan ke pasien'}.`,
+        tipe: 'resep',
+        tautan: `/resep?kunjungan_id=${item.kunjungan_id}`,
+        dibaca: false,
+      });
+      await this.notifikasiRepository.save(notif);
+    }
+
+    // Jika obat diserahkan ke pasien, otomatis majukan status antrian kunjungan ke 'selesai'
+    if (body.status === 'diserahkan') {
+      const kunjungan = await this.kunjunganRepository.findOne({
+        where: { id: item.kunjungan_id },
+      });
+      if (kunjungan && kunjungan.status_antrian === 'merah') {
+        kunjungan.status_antrian = 'selesai';
+        kunjungan.updated_at = new Date();
+        await this.kunjunganRepository.save(kunjungan);
+
+        const log = this.antrianLogRepository.create({
+          kunjungan_id: kunjungan.id,
+          status_dari: 'merah',
+          status_ke: 'selesai',
+          diubah_oleh_user_id: user?.id ?? null,
+          waktu: new Date(),
+        });
+        await this.antrianLogRepository.save(log);
+      }
+    }
+
+    return saved;
   }
 }

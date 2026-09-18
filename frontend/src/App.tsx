@@ -11,6 +11,7 @@ import Resep from '@/pages/Resep';
 import Antropometri from '@/pages/Antropometri';
 import Layanan from '@/pages/Layanan';
 import Lab from '@/pages/Lab';
+import Admin from '@/pages/Admin';
 import Forbidden from '@/pages/Forbidden';
 
 export default function App() {
@@ -66,6 +67,14 @@ export default function App() {
               element={
                 <ProtectedRoute requirePermission="lab.kelola">
                   <Lab />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requirePermission="admin.kelola">
+                  <Admin />
                 </ProtectedRoute>
               }
             />

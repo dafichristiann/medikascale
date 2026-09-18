@@ -1,20 +1,39 @@
 import { useEffect, useState } from 'react';
-import { Search, Truck } from 'lucide-react';
-import { cariArsip, fetchTrackingDokumen } from '@/api/arsip';
+import { Search, Truck, CheckCircle2 } from 'lucide-react';
+import { cariArsip, fetchTrackingDokumen, mintaPengirimanDokumen } from '@/api/arsip';
 import Chip from '@/components/Chip';
 import type { ArsipLokasi, ArsipTrackingStep } from '@/types';
 
 export default function Arsip() {
-  const [query, setQuery] = useState('Bilqis Nur Aisyah');
+  const [query, setQuery] = useState('');
   const [hasil, setHasil] = useState<ArsipLokasi[]>([]);
   const [dipilih, setDipilih] = useState<ArsipLokasi | null>(null);
   const [tracking, setTracking] = useState<ArsipTrackingStep[]>([]);
+  const [loadingKirim, setLoadingKirim] = useState(false);
+  const [notif, setNotif] = useState<string | null>(null);
 
   async function handleCari(e?: React.FormEvent) {
     e?.preventDefault();
     const data = await cariArsip(query);
     setHasil(data);
     setDipilih(data[0] ?? null);
+    setNotif(null);
+  }
+
+  async function handleMintaPengiriman() {
+    if (!dipilih) return;
+    setLoadingKirim(true);
+    setNotif(null);
+    try {
+      await mintaPengirimanDokumen(dipilih.pasien_id, 'Poli Anak Lt.3');
+      setNotif(`Permintaan pengiriman berkas ${dipilih.nama_pasien} ke Poli Anak Lt.3 berhasil dikirim ke kurir.`);
+      const updated = await fetchTrackingDokumen(dipilih.pasien_id);
+      setTracking(updated);
+    } catch (err) {
+      setNotif('Gagal memproses permintaan pengiriman berkas.');
+    } finally {
+      setLoadingKirim(false);
+    }
   }
 
   useEffect(() => {
@@ -112,8 +131,18 @@ export default function Arsip() {
                     </div>
                   ))}
                 </div>
-                <button className="flex items-center gap-2 text-[12.5px] font-semibold border border-border rounded-lg px-3 py-2 hover:border-teal mt-2">
-                  <Truck size={15} /> Minta pengiriman dokumen
+                {notif && (
+                  <div className="flex items-center gap-2 bg-teal-tint border border-teal text-teal-dark text-[12.5px] rounded-lg p-2.5 my-3">
+                    <CheckCircle2 size={16} className="shrink-0" />
+                    <span>{notif}</span>
+                  </div>
+                )}
+                <button
+                  onClick={handleMintaPengiriman}
+                  disabled={loadingKirim}
+                  className="flex items-center gap-2 text-[12.5px] font-semibold bg-teal hover:bg-teal-dark text-white rounded-lg px-3.5 py-2 mt-2 disabled:opacity-60 transition"
+                >
+                  <Truck size={15} /> {loadingKirim ? 'Mengirim permintaan…' : 'Minta pengiriman dokumen ke Poli Anak'}
                 </button>
               </>
             )}
