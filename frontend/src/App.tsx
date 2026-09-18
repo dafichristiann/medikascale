@@ -11,6 +11,7 @@ import Resep from '@/pages/Resep';
 import Antropometri from '@/pages/Antropometri';
 import Layanan from '@/pages/Layanan';
 import Lab from '@/pages/Lab';
+import Admin from '@/pages/Admin';
 import Forbidden from '@/pages/Forbidden';
 import Sophi from '@/pages/Sophi';
 import Vaksin from '@/pages/Vaksin';
@@ -94,6 +95,14 @@ export default function App() {
             <Route path="/pemeriksaan" element={<ProtectedRoute requireAnyPermission={['pemeriksaan.view', 'pemeriksaan.process']}><LabProcessPage /></ProtectedRoute>} />
             <Route path="/pemeriksaan/permintaan" element={<ProtectedRoute requirePermission="pemeriksaan.create"><LabOrderPage /></ProtectedRoute>} />
             <Route path="/pemeriksaan/:id/review" element={<ProtectedRoute requireAnyPermission={['pemeriksaan.process', 'pemeriksaan.review']}><LabReviewPage /></ProtectedRoute>} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requirePermission="admin.kelola">
+                  <Admin />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/layanan" element={<Layanan />} />
             <Route
               path="/sophi"

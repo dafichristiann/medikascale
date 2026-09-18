@@ -123,6 +123,6 @@ CREATE TABLE antropometri_pengukuran (
     z_score_tb_u NUMERIC(4,2),
     z_score_bb_tb NUMERIC(4,2),
     z_score_lk_u NUMERIC(4,2),
-    interpretasi VARCHAR(60),
+    interpretasi VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT now()
 );

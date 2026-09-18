@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Kunjungan } from '../../entities/kunjungan.entity';
@@ -21,6 +21,8 @@ export class AntrianService {
         id: k.pasien?.id,
         nama: k.pasien?.nama,
         no_rm: k.pasien?.no_rm,
+        jenis_kelamin: k.pasien?.jenis_kelamin,
+        tanggal_lahir: k.pasien?.tanggal_lahir,
       },
       layanan: {
         id: k.layanan?.id,
@@ -64,6 +66,22 @@ export class AntrianService {
     }
 
     const statusLama = kunjungan.status_antrian;
+
+    // Validasi alur transisi status yang sah (putih <-> hijau <-> kuning <-> merah <-> selesai)
+    const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+      putih: ['putih', 'hijau'],
+      hijau: ['hijau', 'putih', 'kuning'],
+      kuning: ['kuning', 'hijau', 'merah'],
+      merah: ['merah', 'kuning', 'selesai'],
+      selesai: ['selesai', 'merah'],
+    };
+
+    if (!ALLOWED_TRANSITIONS[statusLama]?.includes(statusBaru)) {
+      throw new BadRequestException(
+        `Transisi status antrian tidak valid dari "${statusLama}" ke "${statusBaru}". Urutan yang sah: putih -> hijau -> kuning -> merah.`,
+      );
+    }
+
     kunjungan.status_antrian = statusBaru;
     kunjungan.updated_at = new Date();
 
