@@ -5,19 +5,30 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PERMISSIONS_KEY } from '../decorators/require-permissions.decorator';
+import {
+  PERMISSIONS_KEY,
+  PERMISSIONS_ANY_KEY,
+} from '../decorators/require-permissions.decorator';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
+    const requiredAll = this.reflector.getAllAndOverride<string[]>(
       PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredPermissions || requiredPermissions.length === 0) {
+    const requiredAny = this.reflector.getAllAndOverride<string[]>(
+      PERMISSIONS_ANY_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    const hasAllCheck = Boolean(requiredAll && requiredAll.length > 0);
+    const hasAnyCheck = Boolean(requiredAny && requiredAny.length > 0);
+
+    if (!hasAllCheck && !hasAnyCheck) {
       return true;
     }
 
@@ -26,14 +37,26 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('Akses ditolak: Anda tidak memiliki izin yang diperlukan.');
     }
 
-    const hasAll = requiredPermissions.every((perm) =>
-      user.permissions.includes(perm),
-    );
-
-    if (!hasAll) {
-      throw new ForbiddenException(
-        `Akses ditolak: Membutuhkan izin [${requiredPermissions.join(', ')}]`,
+    if (hasAllCheck) {
+      const satisfiesAll = requiredAll!.every((perm) =>
+        user.permissions.includes(perm),
       );
+      if (!satisfiesAll) {
+        throw new ForbiddenException(
+          `Akses ditolak: Membutuhkan izin [${requiredAll!.join(', ')}]`,
+        );
+      }
+    }
+
+    if (hasAnyCheck) {
+      const satisfiesAny = requiredAny!.some((perm) =>
+        user.permissions.includes(perm),
+      );
+      if (!satisfiesAny) {
+        throw new ForbiddenException(
+          `Akses ditolak: Membutuhkan salah satu izin dari [${requiredAny!.join(', ')}]`,
+        );
+      }
     }
 
     return true;

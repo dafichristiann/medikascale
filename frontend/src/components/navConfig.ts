@@ -71,4 +71,5 @@ export const NAV_ITEMS: NavItem[] = [
     permission: 'konsultasi_makan.view',
     group: 'Klinik & Tumbuh Kembang',
   },
+  { path: '/admin', label: 'Kelola Admin', icon: Shield, permission: 'admin.kelola' },
 ];

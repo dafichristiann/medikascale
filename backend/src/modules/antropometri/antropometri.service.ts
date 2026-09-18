@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AntropometriPengukuran } from '../../entities/antropometri-pengukuran.entity';
 import { Pasien } from '../../entities/pasien.entity';
 import { Kunjungan } from '../../entities/kunjungan.entity';
+import { AntrianLog } from '../../entities/antrian-log.entity';
 import { CreateAntropometriDto } from './dto/create-antropometri.dto';
 import { hitungZScoreWHO } from './who-standards';
 
@@ -16,6 +17,8 @@ export class AntropometriService {
     private pasienRepository: Repository<Pasien>,
     @InjectRepository(Kunjungan)
     private kunjunganRepository: Repository<Kunjungan>,
+    @InjectRepository(AntrianLog)
+    private antrianLogRepository: Repository<AntrianLog>,
   ) {}
 
   async create(dto: CreateAntropometriDto, diukurOlehUserId?: number) {
@@ -60,6 +63,23 @@ export class AntropometriService {
 
     const saved = await this.antropometriRepository.save(entity);
 
+    // Otomatisasi alur perawat: Kunjungan status 'putih' otomatis maju ke 'hijau' (sudah ditimbang)
+    if (kunjungan.status_antrian === 'putih') {
+      kunjungan.status_antrian = 'hijau';
+      if (diukurOlehUserId) kunjungan.perawat_user_id = diukurOlehUserId;
+      kunjungan.updated_at = new Date();
+      await this.kunjunganRepository.save(kunjungan);
+
+      const log = this.antrianLogRepository.create({
+        kunjungan_id: kunjungan.id,
+        status_dari: 'putih',
+        status_ke: 'hijau',
+        diubah_oleh_user_id: diukurOlehUserId ?? null,
+        waktu: new Date(),
+      });
+      await this.antrianLogRepository.save(log);
+    }
+
     return {
       id: saved.id,
       kunjungan_id: saved.kunjungan_id,
@@ -76,5 +96,29 @@ export class AntropometriService {
       interpretasi: saved.interpretasi,
       created_at: saved.created_at ? new Date(saved.created_at).toISOString() : new Date().toISOString(),
     };
+  }
+
+  async findByKunjunganId(kunjunganId: number) {
+    const list = await this.antropometriRepository.find({
+      where: { kunjungan_id: kunjunganId },
+      order: { created_at: 'DESC' },
+    });
+
+    return list.map((item) => ({
+      id: item.id,
+      kunjungan_id: item.kunjungan_id,
+      pasien_id: item.pasien_id,
+      diukur_oleh_user_id: item.diukur_oleh_user_id,
+      usia_bulan: item.usia_bulan,
+      berat_badan_kg: Number(item.berat_badan_kg),
+      tinggi_badan_cm: Number(item.tinggi_badan_cm),
+      lingkar_kepala_cm: item.lingkar_kepala_cm ? Number(item.lingkar_kepala_cm) : undefined,
+      z_score_bb_u: item.z_score_bb_u !== null && item.z_score_bb_u !== undefined ? Number(item.z_score_bb_u) : undefined,
+      z_score_tb_u: item.z_score_tb_u !== null && item.z_score_tb_u !== undefined ? Number(item.z_score_tb_u) : undefined,
+      z_score_bb_tb: item.z_score_bb_tb !== null && item.z_score_bb_tb !== undefined ? Number(item.z_score_bb_tb) : undefined,
+      z_score_lk_u: item.z_score_lk_u !== null && item.z_score_lk_u !== undefined ? Number(item.z_score_lk_u) : undefined,
+      interpretasi: item.interpretasi,
+      created_at: item.created_at ? new Date(item.created_at).toISOString() : new Date().toISOString(),
+    }));
   }
 }

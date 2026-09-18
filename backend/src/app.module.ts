@@ -16,6 +16,12 @@ import {
   ArsipMap,
   ArsipPinjam,
   ArsipPinjamDetail,
+  PemeriksaanDokter,
+  ResepObat,
+  PemeriksaanPenunjang,
+  ArsipDokumen,
+  ArsipTracking,
+  Notifikasi,
 } from './entities';
 import { AuthModule } from './modules/auth/auth.module';
 import { LayananModule } from './modules/layanan/layanan.module';
@@ -25,6 +31,9 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { StubsModule } from './modules/stubs/stubs.module';
 import { ArsipModule } from './modules/arsip/arsip.module';
+import { KlinisModule } from './modules/klinis/klinis.module';
+import { NotifikasiModule } from './modules/notifikasi/notifikasi.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -57,6 +66,12 @@ import { ArsipModule } from './modules/arsip/arsip.module';
           ArsipMap,
           ArsipPinjam,
           ArsipPinjamDetail,
+          PemeriksaanDokter,
+          ResepObat,
+          PemeriksaanPenunjang,
+          ArsipDokumen,
+          ArsipTracking,
+          Notifikasi,
         ],
         synchronize: false, // Schema is managed via explicit SQL DDL
         logging: false,
@@ -70,6 +85,9 @@ import { ArsipModule } from './modules/arsip/arsip.module';
     WhatsAppModule,
     StubsModule,
     ArsipModule,
+    KlinisModule,
+    NotifikasiModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

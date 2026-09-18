@@ -42,7 +42,8 @@ INSERT INTO users (id, role_id, nama, username, email, password_hash, no_telepon
 (1, 1, 'dr. Angga, Sp.A', 'dokter', 'dokter@medikascale.local', '$2b$10$4D3QYyQenQ85JEjTeqdhDe0tz9oDsm2IKjdGK65D2pVwnENem08tO', '08123456701', true),
 (2, 2, 'Ns. Dewi Lestari', 'perawat', 'perawat@medikascale.local', '$2b$10$4D3QYyQenQ85JEjTeqdhDe0tz9oDsm2IKjdGK65D2pVwnENem08tO', '08123456702', true),
 (3, 3, 'Apt. Ratna Wijaya', 'apoteker', 'apoteker@medikascale.local', '$2b$10$4D3QYyQenQ85JEjTeqdhDe0tz9oDsm2IKjdGK65D2pVwnENem08tO', '08123456703', true),
-(4, 4, 'Analis Yoga Pratama', 'lab', 'lab@medikascale.local', '$2b$10$4D3QYyQenQ85JEjTeqdhDe0tz9oDsm2IKjdGK65D2pVwnENem08tO', '08123456704', true)
+(4, 4, 'Analis Yoga Pratama', 'lab', 'lab@medikascale.local', '$2b$10$4D3QYyQenQ85JEjTeqdhDe0tz9oDsm2IKjdGK65D2pVwnENem08tO', '08123456704', true),
+(5, 5, 'Administrator MedikaScale', 'admin', 'admin@medikascale.local', '$2b$10$4D3QYyQenQ85JEjTeqdhDe0tz9oDsm2IKjdGK65D2pVwnENem08tO', '08123456705', true)
 ON CONFLICT (id) DO NOTHING;
 
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
